@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CryptoKit
 
 struct TodoDTO: Codable, Identifiable {
     let id: Int

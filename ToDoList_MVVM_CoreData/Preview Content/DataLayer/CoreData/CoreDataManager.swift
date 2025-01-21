@@ -45,8 +45,8 @@ public final class CoreDataManager {
         }
     }
     
-//    public func fetchTasks() -> [TaskList] {
-//        let fetchRequest: NSFetchRequest<TaskList> = TaskList.fetchRequest()
+//    public func fetchTasks() -> [TaskEntity] {
+//        let fetchRequest: NSFetchRequest<TaskEntity> = TaskEntity.fetchRequest()
 //        
 //        do {
 //            let tasks = try context.fetch(fetchRequest)
@@ -64,6 +64,7 @@ public final class CoreDataManager {
                 // Добавляем сортировку для стабильного порядка
                 fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \TaskEntity.date, ascending: false)]
                 let tasks = try context.fetch(fetchRequest)
+                print("🔄 Извлечено задач из CoreData: \(tasks.count)")
                 return tasks
             } catch {
                 print("Error fetching tasks: \(error)")

@@ -10,16 +10,36 @@ import CoreData
 import Combine
 
 class TodoViewModel: ObservableObject {
-    @Published private(set) var todos: [TodoDTO] = []
-    @Published private(set) var tasks: [TaskEntity] = []
+    @Published private(set) var tasks: [TaskDomainEntity] = []
     @Published private(set) var isLoading: Bool = false
     @Published private(set) var error: Error?
     @Published var searchText: String = ""
     
-    private let coreDataManager = CoreDataManager.shared
-    private let networkService = NetworkService()
+    private let fetchLocalTasksUseCase: FetchLocalTasksUseCase
+    private let fetchRemoteTasksUseCase: FetchRemoteTasksUseCase
+    private let createTaskUseCase: CreateTaskUseCase
+    private let deleteTaskUseCase: DeleteTaskUseCase
+    private let toggleTaskCompletionUseCase: ToggleTaskCompletionUseCase
+    private let deleteAllTasksUseCase: DeleteAllTasksUseCase
     
-    var filteredTasks: [TaskEntity] {
+    init(
+        fetchLocalTasksUseCase: FetchLocalTasksUseCase = FetchLocalTasksUseCase(taskRepository: TaskRepository()),
+        fetchRemoteTasksUseCase: FetchRemoteTasksUseCase = FetchRemoteTasksUseCase(taskRepository: TaskRepository()),
+        createTaskUseCase: CreateTaskUseCase = CreateTaskUseCase(taskRepository: TaskRepository()),
+        deleteTaskUseCase: DeleteTaskUseCase = DeleteTaskUseCase(taskRepository: TaskRepository()),
+        toggleTaskCompletionUseCase: ToggleTaskCompletionUseCase = ToggleTaskCompletionUseCase(taskRepository: TaskRepository()),
+        deleteAllTasksUseCase: DeleteAllTasksUseCase = DeleteAllTasksUseCase(taskRepository: TaskRepository())
+    ) {
+        self.fetchLocalTasksUseCase = fetchLocalTasksUseCase
+        self.fetchRemoteTasksUseCase = fetchRemoteTasksUseCase
+        self.createTaskUseCase = createTaskUseCase
+        self.deleteTaskUseCase = deleteTaskUseCase
+        self.toggleTaskCompletionUseCase = toggleTaskCompletionUseCase
+        self.deleteAllTasksUseCase = deleteAllTasksUseCase
+    }
+    
+    // Отфильтрованные задачи на основе searchText
+    var filteredTasks: [TaskDomainEntity] {
         if searchText.isEmpty {
             return tasks
         }
@@ -31,154 +51,102 @@ class TodoViewModel: ObservableObject {
     @MainActor
     func loadData() async {
         isLoading = true
-        loadTasksFromCoreData()
-        
-        if tasks.isEmpty {
-            do {
-                let fetchedTodos = try await networkService.fetchTodos()
-                //Сохраняем полученные данные в CoreData
-                for todo in fetchedTodos {
-                    coreDataManager.createTask(id: todo.uuid,
-                                               title: todo.todo,
-                                               taskDescription: "",
-                                               date: Date(),
-                                               isCompleted: todo.completed)
+        do {
+            // 1. Загружаем задачи из локального хранилища (CoreData)
+            let localTasks = try await fetchLocalTasksUseCase.execute()
+            print("🔄 Загружено задач из CoreData: \(localTasks.count)")
+            
+            if localTasks.isEmpty {
+                print("ℹ️ Локальных задач нет, загружаем с сервера...")
+                // 2. Если локальных задач нет, загружаем с сервера
+                let remoteTasks = try await fetchRemoteTasksUseCase.execute()
+                print("🔄 Загружено задач с сервера: \(remoteTasks.count)")
+                
+                // 3. Сохраняем задачи в локальное хранилище (CoreData)
+                for task in remoteTasks {
+                    try await createTaskUseCase.execute(
+                        id: task.id,
+                        title: task.title,
+                        description: task.taskDescription,
+                        date: task.date,
+                        isCompleted: task.isCompleted
+                    )
                 }
-                //загружаем сохраненные данные
-                loadTasksFromCoreData()
-            } catch {
-                self.error = error
-                print("Error fetching todos: \(error.localizedDescription)")
+                print("✅ Задачи сохранены в CoreData")
+                
+                // 4. Обновляем список задач
+                tasks = try await fetchLocalTasksUseCase.execute()
+            } else {
+                print("ℹ️ Используем задачи из CoreData")
+                // 5. Если локальные задачи есть, используем их
+                tasks = localTasks
             }
+        } catch {
+            self.error = error
+            print("❌ Error fetching tasks: \(error.localizedDescription)")
         }
         isLoading = false
     }
     
-    // Добавление новой задачи
-    @MainActor
-    func addTask(title: String, description: String) {
-        let newId = UUID()
-        //let newId = Int16(tasks.count)
-        coreDataManager.createTask(
-            //id: newId,
-            id: newId,
-            title: title,
-            taskDescription: description,
-            date: Date(),
-            isCompleted: false
-        )
-        loadTasksFromCoreData()
-    }
-    
-    // Обновление задачи
-    @MainActor
-    func toggleTaskCompletion(task: TaskEntity) {
-        // Сохраняем новое значение
-        let newValue = !task.isCompleted
-        
-        // Обновляем в CoreData
-        coreDataManager.updateTask(task: task, isCompleted: newValue)
-        
-        // Принудительно сохраняем контекст
-        coreDataManager.saveContext()
-        
-        // Обновляем UI и локальное состояние
-        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-            tasks[index].isCompleted = newValue
-            objectWillChange.send()
-        }
-    }
-    
-    
-    
-    @MainActor
-    func deleteTask(task: TaskEntity) {
-        print("🗑️ TodoViewModel: Starting task deletion")
-        
-        // Удаляем задачу из локального массива tasks
-        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-            print("🗑️ TodoViewModel: Removing task from local tasks array")
-            tasks.remove(at: index)
-            objectWillChange.send() // Обновляем UI
-            print("✅ TodoViewModel: Task removed from UI")
-        } else {
-            print("ℹ️ TodoViewModel: Task not found in local tasks array")
-        }
-        
-        // Удаляем задачу из CoreData
-        coreDataManager.deleteTask(task: task)
-        
-        print("✅ TodoViewModel: Task deletion process completed")
-    }
-    
 //    @MainActor
-//    func deleteTask(task: TaskList) {
-//        print("🗑️ TodoViewModel: Starting task deletion")
-//        guard let taskToDelete = coreDataManager.fetchTaskById(byId: task.id) else {
-//            print("❌ TodoViewModel: Task not found for deletion")
-//            return
+//    func addTask(title: String, description: String) async {
+//        do {
+//            let task = try await createTaskUseCase.execute(id: <#UUID#>, title: title, description: description, date: Date(), isCompleted: false)
+//            tasks.append(task)
+//        } catch {
+//            print("❌ Error creating task: \(error.localizedDescription)")
 //        }
-//        
-//        coreDataManager.deleteTask(task: taskToDelete)
-//        print("♻️ TodoViewModel: Reloading tasks after deletion")
-//        loadTasksFromCoreData() // Ensure this updates the UI
-//    }
-    
-//    @MainActor
-//    func deleteTask(byId id: UUID) {
-//        print("🗑️ TodoViewModel: Starting task deletion by id: \(id)")
-//        
-//        // Удаляем задачу из локального массива tasks
-//        if let index = tasks.firstIndex(where: { $0.id == id }) {
-//            print("🗑️ TodoViewModel: Removing task from local tasks array at index: \(index)")
-//            tasks.remove(at: index)
-//            objectWillChange.send() // Обновляем UI
-//            print("✅ TodoViewModel: Task removed from UI")
-//        } else {
-//            print("ℹ️ TodoViewModel: Task not found in local tasks array")
-//        }
-//        
-//        // Удаляем задачу из CoreData
-//        print("🗑️ TodoViewModel: Deleting task from CoreData")
-//        coreDataManager.deleteTask(byId: id)
-//        
-//        print("✅ TodoViewModel: Task deletion process completed")
 //    }
     
     @MainActor
-        func deleteTask(byId id: UUID)  {
-            print("🗑️ TodoViewModel: Starting task deletion by id: \(id)")
-            
-            // Создаем временную копию массива, исключая удаляемую задачу
-            tasks = tasks.filter { $0.id != id }
-            
-            // Обновляем UI немедленно
-            print("🔄 TodoViewModel: Updating UI after filtering tasks")
-            objectWillChange.send()
-            
-            // Удаляем из CoreData
-            print("🗑️ TodoViewModel: Deleting task from CoreData")
-            coreDataManager.deleteTask(byId: id)
-            
-            // Перезагружаем данные для синхронизации
-            print("🔄 TodoViewModel: Reloading tasks from CoreData")
-            loadTasksFromCoreData()
-            
-            print("✅ TodoViewModel: Task deletion process completed")
+    func deleteTask(byId id: UUID) async {
+        do {
+            try await deleteTaskUseCase.execute(byId: id)
+            tasks.removeAll { $0.id == id }
+        } catch {
+            print("❌ Error deleting task: \(error.localizedDescription)")
         }
-
-    @MainActor
-    func loadTasksFromCoreData() {
-        print("📥 TodoViewModel: Starting to load tasks from CoreData")
-        tasks = coreDataManager.fetchTasks()
-        print("✅ TodoViewModel: Loaded \(tasks.count) tasks from CoreData")
     }
-
-
     
     @MainActor
-    func clearAllData() {
-        coreDataManager.deleteAllData()
-        tasks = []
+    func toggleTaskCompletion(task: TaskDomainEntity) async {
+        do {
+            // Создаем обновленную задачу с измененным состоянием isCompleted
+            print("Создаем обновленную задачу с измененным состоянием isCompleted")
+            print("ID задачи: \(task.id)")
+            let updatedTask = TaskDomainEntity(
+                id: task.id,
+                title: task.title,
+                taskDescription: task.taskDescription,
+                date: task.date,
+                isCompleted: !task.isCompleted // Инвертируем состояние
+            )
+            
+            // Обновляем задачу в CoreData
+            print("Обновляем задачу в CoreData \(updatedTask.id)")
+            try await toggleTaskCompletionUseCase.execute(task: updatedTask)
+            print("Обновили задачу в CoreData")
+            
+            // Обновляем задачу в локальном списке
+            if let index = tasks.firstIndex(where: { $0.id == updatedTask.id }) {
+                tasks[index] = updatedTask
+            }
+            print("Обновили задачу в локальном списке")
+        } catch {
+            print("❌ Error toggling task completion: \(error.localizedDescription)")
+        }
+    }
+    
+    @MainActor
+    func clearAllData() async {
+        do {
+            tasks = []
+            try await deleteAllTasksUseCase.execute()
+            
+            print("✅ Все данные успешно удалены")
+        } catch {
+            self.error = error
+            print("❌ Ошибка при удалении всех данных: \(error.localizedDescription)")
+        }
     }
 }

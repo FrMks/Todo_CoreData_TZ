@@ -18,36 +18,6 @@
             endingLineNumber = "153"
             landmarkName = "deleteTask(byId:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "F18C1691-96C2-4F49-A032-91E7F2346AC0 - 86a9b16d9c52179d"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "ToDoList_MVVM_CoreData.TodoViewModel.deleteTask(byId: Foundation.UUID) -&gt; ()"
-                  moduleName = "ToDoList_MVVM_CoreData.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/maksimfrancuzov/Developer/IOS/ToDoList_MVVM_CoreData/ToDoList_MVVM_CoreData/Preview%20Content/Modules/HomeView/ViewModel/TodoViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "153"
-                  endingLineNumber = "153">
-               </Location>
-               <Location
-                  uuid = "F18C1691-96C2-4F49-A032-91E7F2346AC0 - 8a56e9ae69f64e80"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 (ToDoList_MVVM_CoreData.TaskList) -&gt; Swift.Bool in ToDoList_MVVM_CoreData.TodoViewModel.deleteTask(byId: Foundation.UUID) -&gt; ()"
-                  moduleName = "ToDoList_MVVM_CoreData.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/maksimfrancuzov/Developer/IOS/ToDoList_MVVM_CoreData/ToDoList_MVVM_CoreData/Preview%20Content/Modules/HomeView/ViewModel/TodoViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "153"
-                  endingLineNumber = "153">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -64,36 +34,6 @@
             endingLineNumber = "72"
             landmarkName = "body"
             landmarkType = "24">
-            <Locations>
-               <Location
-                  uuid = "DEB2621D-C97E-42C6-A60E-67A5C8E31C5D - 55d66eac31de53a8"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #5 @Swift.MainActor () -&gt; () in closure #2 () -&gt; SwiftUI.TupleView&lt;(SwiftUI.Button&lt;SwiftUI.Label&lt;SwiftUI.Text, SwiftUI.Image&gt;&gt;, SwiftUI.Button&lt;SwiftUI.Label&lt;SwiftUI.Text, SwiftUI.Image&gt;&gt;, SwiftUI.Button&lt;SwiftUI.Label&lt;SwiftUI.Text, SwiftUI.Image&gt;&gt;)&gt; in ToDoList_MVVM_CoreData.TaskRow.body.getter : some"
-                  moduleName = "ToDoList_MVVM_CoreData.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/maksimfrancuzov/Developer/IOS/ToDoList_MVVM_CoreData/ToDoList_MVVM_CoreData/Preview%20Content/Modules/HomeView/Views/TaskRow.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "72"
-                  endingLineNumber = "72">
-               </Location>
-               <Location
-                  uuid = "DEB2621D-C97E-42C6-A60E-67A5C8E31C5D - 5163da26da911313"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 () -&gt; () in closure #5 @Swift.MainActor () -&gt; () in closure #2 () -&gt; SwiftUI.TupleView&lt;(SwiftUI.Button&lt;SwiftUI.Label&lt;SwiftUI.Text, SwiftUI.Image&gt;&gt;, SwiftUI.Button&lt;SwiftUI.Label&lt;SwiftUI.Text, SwiftUI.Image&gt;&gt;, SwiftUI.Button&lt;SwiftUI.Label&lt;SwiftUI.Text, SwiftUI.Image&gt;&gt;)&gt; in ToDoList_MVVM_CoreData.TaskRow.body.getter : some"
-                  moduleName = "ToDoList_MVVM_CoreData.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/maksimfrancuzov/Developer/IOS/ToDoList_MVVM_CoreData/ToDoList_MVVM_CoreData/Preview%20Content/Modules/HomeView/Views/TaskRow.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "73"
-                  endingLineNumber = "73">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

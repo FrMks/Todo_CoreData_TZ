@@ -1,20 +1,20 @@
 //
-//  FetchTasksUseCase.swift
+//  DeleteAllTasks.swift
 //  ToDoList_MVVM_CoreData
 //
-//  Created by Максим Французов on 20.01.2025.
+//  Created by Максим Французов on 21.01.2025.
 //
 
 import Foundation
 
-final class FetchTasksUseCase {
+final class DeleteAllTasksUseCase {
     private let taskRepository: TaskRepositoryProtocol
     
     init(taskRepository: TaskRepositoryProtocol) {
         self.taskRepository = taskRepository
     }
     
-    func execute() async throws -> [TaskDomainEntity] {
-        return try await taskRepository.fetchTasks()
+    func execute() async throws {
+        try await taskRepository.deleteAllTasks()
     }
 }

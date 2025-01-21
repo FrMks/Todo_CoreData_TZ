@@ -67,14 +67,18 @@ extension HomeView {
                     .foregroundColor(.yellow)
                     .font(.system(size: 20))
             }
-            Spacer()
-            Button(action: {
-                viewModel.clearAllData()
-            }) {
-                Image(systemName: "trash")
-                    .foregroundStyle(.red)
-                    .font(.system(size: 20))
-            }
+            //MARK: if you want to delete everything from CoreData
+//            Spacer()
+//            Button(action: {
+//                Task {
+//                    await viewModel.clearAllData()
+//                }
+//                
+//            }) {
+//                Image(systemName: "trash")
+//                    .foregroundStyle(.red)
+//                    .font(.system(size: 20))
+//            }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
@@ -101,7 +105,10 @@ extension HomeView {
                 print("🗑️ HomeView: Deleting tasks at indices: \(indexSet)")
                 indexSet.forEach { index in
                     let taskToDelete = viewModel.filteredTasks[index]
-                    viewModel.deleteTask(byId: taskToDelete.id)
+                    Task {
+                        await viewModel.deleteTask(byId: taskToDelete.id)
+                    }
+                    
                 }
             }
         }

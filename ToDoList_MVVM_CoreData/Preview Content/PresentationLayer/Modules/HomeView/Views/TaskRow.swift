@@ -6,15 +6,15 @@
 //
 
 import SwiftUI
+import Swift
 
 struct TaskRow: View {
-    let task: TaskEntity
+    let task: TaskDomainEntity
     @ObservedObject var viewModel: TodoViewModel
     @State private var isCompleted: Bool
     @State private var showingEditView = false
     
-    
-    init(task: TaskEntity, viewModel: TodoViewModel, isCompleted: Bool) {
+    init(task: TaskDomainEntity, viewModel: TodoViewModel, isCompleted: Bool) {
         self.task = task
         self.viewModel = viewModel
         _isCompleted = State(initialValue: task.isCompleted)
@@ -25,7 +25,9 @@ struct TaskRow: View {
             HStack {
                 Button(action: {
                     isCompleted.toggle()
-                    viewModel.toggleTaskCompletion(task: task)
+                    Task {
+                        await viewModel.toggleTaskCompletion(task: task)
+                    }
                 }) {
                     Image(isCompleted ? "DoneTask" : "TaskNotCompleted")
                         .resizable()
@@ -48,6 +50,7 @@ struct TaskRow: View {
             }
             
             Text(task.date.formatToShortDate())
+            //Text("\(task.date.timeIntervalSince1970)")
                 .font(.system(size: 12))
                 .foregroundStyle(Color.theme.whiteCustom.opacity(0.5))
                 .padding(.top, 6)
@@ -69,9 +72,10 @@ struct TaskRow: View {
             }
             
             Button(role: .destructive, action: {
-                withAnimation {
-                    viewModel.deleteTask(byId: task.id)
+                Task {
+                    await viewModel.deleteTask(byId: task.id)
                 }
+                
                 
             }) {
                 Label("Удалить", systemImage: "trash")
@@ -88,4 +92,3 @@ struct TaskRow: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
-

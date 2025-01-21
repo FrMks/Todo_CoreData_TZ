@@ -14,16 +14,18 @@ final class CreateTaskUseCase {
         self.taskRepository = taskRepository
     }
     
-    func execute(title: String, description: String, date: Date) async throws -> TaskDomainEntity {
+    func execute(id: UUID, title: String, description: String, date: Date, isCompleted: Bool) async throws -> TaskDomainEntity {
         let task = TaskDomainEntity(
-            id: UUID(),
+            id: id,
             title: title,
             taskDescription: description,
             date: date,
-            isCompleted: false
+            isCompleted: isCompleted
         )
         
+        //print("🔄 Сохранение задачи в CoreData: \(title)")
         try await taskRepository.saveTask(task)
+        //print("✅ Задача сохранена в CoreData: \(title)")
         return task
     }
 }

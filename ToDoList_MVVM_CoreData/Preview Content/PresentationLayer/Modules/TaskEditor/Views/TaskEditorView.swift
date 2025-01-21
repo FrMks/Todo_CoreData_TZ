@@ -11,9 +11,8 @@ struct TaskEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: TaskEditorViewModel
     @ObservedObject var todoViewModel: TodoViewModel
-
     
-    init(editingTask: TaskEntity? = nil, todoViewModel: TodoViewModel) {
+    init(editingTask: TaskDomainEntity? = nil, todoViewModel: TodoViewModel) {
         _viewModel = StateObject(wrappedValue: TaskEditorViewModel(editingTask: editingTask))
         self.todoViewModel = todoViewModel
     }
@@ -41,7 +40,10 @@ struct TaskEditorView: View {
                         if shouldSave {
                             print("✅ Changes were saved, updating UI")
                             await MainActor.run {
-                                todoViewModel.loadTasksFromCoreData()
+                                Task {
+                                    await todoViewModel.loadData()
+                                }
+                                
                                 print("✅ UI updated, dismissing")
                                 dismiss()
                             }
@@ -58,7 +60,9 @@ struct TaskEditorView: View {
                     .foregroundStyle(Color.theme.yellowCustom)
                 }
             }
+
         }
+        
     }
 }
 
@@ -82,7 +86,7 @@ extension TaskEditorView {
         }
         .padding(.horizontal, 20)
     }
-
+    
     
     private var dateView: some View {
         HStack {
