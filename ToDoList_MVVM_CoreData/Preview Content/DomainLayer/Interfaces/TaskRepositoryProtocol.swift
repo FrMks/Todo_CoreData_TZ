@@ -8,8 +8,8 @@
 import Foundation
 
 protocol TaskRepositoryProtocol {
-    func fetchTasks() async throws -> [TaskDomainEntity] // Локальные задачи (CoreData)
-    func fetchRemoteTasks() async throws -> [TaskDomainEntity] // Задачи с сервера
+    func fetchTasks() async throws -> [TaskDomainEntity]
+    func fetchRemoteTasks() async throws -> [TaskDomainEntity]
     func saveTask(_ task: TaskDomainEntity) async throws
     func deleteTask(byId id: UUID) async throws
     func updateTask(task: TaskDomainEntity) async throws

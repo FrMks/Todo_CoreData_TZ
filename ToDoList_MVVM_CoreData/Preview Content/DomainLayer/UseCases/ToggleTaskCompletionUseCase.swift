@@ -15,7 +15,7 @@ final class ToggleTaskCompletionUseCase {
     }
     
     func execute(task: TaskDomainEntity) async throws {
-        // Обновляем задачу в CoreData
+        // Updating a task in CoreData
         print("\(task.id)")
         try await taskRepository.updateTask(task: task)
     }

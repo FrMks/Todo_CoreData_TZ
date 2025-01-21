@@ -33,22 +33,17 @@ struct TaskEditorView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(action: {
                     Task {
-                        print("🔄 Starting back button task")
                         let shouldSave = await viewModel.handleBackButton()
-                        print("📊 Should save result: \(shouldSave)")
                         
                         if shouldSave {
-                            print("✅ Changes were saved, updating UI")
                             await MainActor.run {
                                 Task {
                                     await todoViewModel.loadData()
                                 }
                                 
-                                print("✅ UI updated, dismissing")
                                 dismiss()
                             }
                         } else {
-                            print("ℹ️ No changes to save, dismissing")
                             dismiss()
                         }
                     }
@@ -60,7 +55,7 @@ struct TaskEditorView: View {
                     .foregroundStyle(Color.theme.yellowCustom)
                 }
             }
-
+            
         }
         
     }
@@ -72,9 +67,9 @@ extension TaskEditorView {
             TextEditor(text: $viewModel.title)
                 .font(.system(size: 34))
                 .foregroundStyle(Color.theme.whiteCustom)
-                .scrollContentBackground(.hidden) // Убираем стандартный фон
+                .scrollContentBackground(.hidden)
                 .background(Color.clear)
-                .frame(height: calculateTextHeight()) // Динамическая высота
+                .frame(height: calculateTextHeight())
             
             if viewModel.title.isEmpty {
                 Text("Название задачи")
@@ -90,7 +85,6 @@ extension TaskEditorView {
     
     private var dateView: some View {
         HStack {
-            // Дата
             Text(viewModel.date.formatToShortDate())
                 .font(.system(size: 12))
                 .foregroundStyle(Color.theme.whiteCustom.opacity(0.5))
@@ -105,7 +99,7 @@ extension TaskEditorView {
             TextEditor(text: $viewModel.taskDescription)
                 .font(.system(size: 20))
                 .foregroundStyle(Color.theme.whiteCustom)
-                .scrollContentBackground(.hidden) // Убираем стандартный фон
+                .scrollContentBackground(.hidden)
                 .background(Color.clear)
                 .frame(maxHeight: .infinity)
             
@@ -123,7 +117,7 @@ extension TaskEditorView {
     
     fileprivate func calculateTextHeight() -> CGFloat {
         let text = viewModel.title.isEmpty ? "Название задачи" : viewModel.title
-        let width = UIScreen.main.bounds.width - 40 // Учитываем отступы (.horizontal, 20)
+        let width = UIScreen.main.bounds.width - 40
         let font = UIFont.systemFont(ofSize: 34)
         let attributes = [NSAttributedString.Key.font: font]
         let boundingRect = text.boundingRect(
@@ -132,24 +126,8 @@ extension TaskEditorView {
             attributes: attributes,
             context: nil
         )
-        return max(boundingRect.height + 16, 50) // Минимальная высота 50
+        return max(boundingRect.height + 16, 50)
     }
 }
 
-// Добавляем extension для placeholder
-extension View {
-    func placeholder<Content: View>(
-        when shouldShow: Bool,
-        alignment: Alignment = .leading,
-        @ViewBuilder placeholder: () -> Content) -> some View {
-            
-            ZStack(alignment: alignment) {
-                placeholder().opacity(shouldShow ? 1 : 0)
-                self
-            }
-        }
-}
 
-//#Preview {
-//    TaskEditorView()
-//}

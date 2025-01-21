@@ -15,9 +15,7 @@ final class FetchRemoteTasksUseCase {
     }
     
     func execute() async throws -> [TaskDomainEntity] {
-        print("🔄 Загрузка задач с сервера...")
         let remoteTasks = try await taskRepository.fetchRemoteTasks()
-        print("✅ Загружено задач с сервера: \(remoteTasks.count)")
         return remoteTasks
     }
 }

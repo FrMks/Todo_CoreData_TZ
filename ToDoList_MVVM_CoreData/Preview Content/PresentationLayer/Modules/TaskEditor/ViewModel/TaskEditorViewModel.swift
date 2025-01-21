@@ -42,12 +42,10 @@ class TaskEditorViewModel: ObservableObject {
     @MainActor
     func handleBackButton() async -> Bool {
         guard !title.isEmpty else {
-            print("❌ Title is empty, cancelling")
             return false
         }
         
         if let editingTask = editingTask {
-            print("🔄 Updating existing task")
             do {
                 let updatedTask = TaskDomainEntity(
                     id: editingTask.id,
@@ -64,7 +62,6 @@ class TaskEditorViewModel: ObservableObject {
                 return false
             }
         } else {
-            print("➕ Creating new task")
             do {
                 let task = try await createTaskUseCase.execute(
                     id: UUID(),

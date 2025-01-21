@@ -16,9 +16,7 @@ final class LocalTaskRepository: LocalTaskRepositoryProtocol {
     }
     
     func fetchTasks() async throws -> [TaskDomainEntity] {
-        //print("🔄 Извлечение задач из CoreData...")
         let taskEntities = coreDataManager.fetchTasks()
-        //print("✅ Извлечено задач из CoreData: \(taskEntities.count)")
         return taskEntities.map { taskEntity in
             TaskDomainEntity(
                 id: taskEntity.id,
@@ -31,7 +29,6 @@ final class LocalTaskRepository: LocalTaskRepositoryProtocol {
     }
     
     func saveTask(_ task: TaskDomainEntity) async throws {
-        //print("🔄 Сохранение задачи в CoreData: \(task.title)")
         let context = coreDataManager.context
         let taskEntity = TaskEntity(context: context)
         taskEntity.id = task.id
@@ -40,7 +37,6 @@ final class LocalTaskRepository: LocalTaskRepositoryProtocol {
         taskEntity.date = task.date
         taskEntity.isCompleted = task.isCompleted
         try context.save()
-        //print("✅ Задача сохранена в CoreData: \(task.title)")
     }
     
     func deleteTask(byId id: UUID) async throws {

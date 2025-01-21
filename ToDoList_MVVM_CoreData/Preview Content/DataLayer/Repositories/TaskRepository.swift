@@ -20,12 +20,12 @@ final class TaskRepository: TaskRepositoryProtocol {
     }
     
     func fetchTasks() async throws -> [TaskDomainEntity] {
-        //Загружаем задачи из локального хранилища (CoreData)
+        //Load tasks from local storage (CoreData)
         return try await localTaskRepository.fetchTasks()
     }
     
     func fetchRemoteTasks() async throws -> [TaskDomainEntity] {
-        //Загружаем задачи с сервера
+        //Load tasks from the server
         return try await remoteTaskRepository.fetchRemoteTasks()
     }
     

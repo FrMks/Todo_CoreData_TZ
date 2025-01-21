@@ -23,38 +23,15 @@ struct TaskRow: View {
     var body: some View {
         VStack(alignment: .leading) {
             HStack {
-                Button(action: {
-                    isCompleted.toggle()
-                    Task {
-                        await viewModel.toggleTaskCompletion(task: task)
-                    }
-                }) {
-                    Image(isCompleted ? "DoneTask" : "TaskNotCompleted")
-                        .resizable()
-                        .frame(width: 24, height: 48)
-                        .animation(.easeInOut, value: isCompleted)
-                }
-                Text(task.title.prefix(30) + (task.title.count > 30 ? "..." : ""))
-                    .font(.system(size: 16))
-                    .foregroundColor(isCompleted ? Color.theme.whiteCustom.opacity(0.5) : Color.theme.whiteCustom)
-                    .strikethrough(isCompleted)
-                    .padding(.leading, 8)
+                statusButtonView
+                titleTextView
                 Spacer()
             }
             if !task.taskDescription.isEmpty {
-                Text(task.taskDescription.prefix(30) + (task.taskDescription.count > 30 ? "..." : ""))
-                    .font(.system(size: 12))
-                    .foregroundColor(isCompleted ? Color.theme.whiteCustom.opacity(0.5) : Color.theme.whiteCustom)
-                    .padding(.top, 6)
-                    .padding(.leading, 32)
+                taskDescriptionView
             }
             
-            Text(task.date.formatToShortDate())
-            //Text("\(task.date.timeIntervalSince1970)")
-                .font(.system(size: 12))
-                .foregroundStyle(Color.theme.whiteCustom.opacity(0.5))
-                .padding(.top, 6)
-                .padding(.leading, 32)
+            dateView
             
         }
         .padding(.horizontal, 20)
@@ -66,7 +43,7 @@ struct TaskRow: View {
             }
             
             Button(action: {
-                // Добавить функционал share
+                // Add share functionality
             }) {
                 Label("Поделиться", systemImage: "square.and.arrow.up")
             }
@@ -90,5 +67,42 @@ struct TaskRow: View {
             .opacity(0)
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+extension TaskRow {
+    private var statusButtonView: some View {
+        Button(action: {
+            isCompleted.toggle()
+            Task {
+                await viewModel.toggleTaskCompletion(task: task)
+            }
+        }) {
+            Image(isCompleted ? "DoneTask" : "TaskNotCompleted")
+                .resizable()
+                .frame(width: 24, height: 48)
+                .animation(.easeInOut, value: isCompleted)
+        }
+    }
+    private var titleTextView: some View {
+        Text(task.title.prefix(30) + (task.title.count > 30 ? "..." : ""))
+            .font(.system(size: 16))
+            .foregroundColor(isCompleted ? Color.theme.whiteCustom.opacity(0.5) : Color.theme.whiteCustom)
+            .strikethrough(isCompleted)
+            .padding(.leading, 8)
+    }
+    private var taskDescriptionView: some View {
+        Text(task.taskDescription.prefix(30) + (task.taskDescription.count > 30 ? "..." : ""))
+            .font(.system(size: 12))
+            .foregroundColor(isCompleted ? Color.theme.whiteCustom.opacity(0.5) : Color.theme.whiteCustom)
+            .padding(.top, 6)
+            .padding(.leading, 32)
+    }
+    private var dateView: some View {
+        Text(task.date.formatToShortDate())
+            .font(.system(size: 12))
+            .foregroundStyle(Color.theme.whiteCustom.opacity(0.5))
+            .padding(.top, 6)
+            .padding(.leading, 32)
     }
 }

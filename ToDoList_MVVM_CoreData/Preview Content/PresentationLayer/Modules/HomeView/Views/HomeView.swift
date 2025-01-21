@@ -102,7 +102,6 @@ extension HomeView {
                     .listRowBackground(Color.black)
             }
             .onDelete { indexSet in
-                print("🗑️ HomeView: Deleting tasks at indices: \(indexSet)")
                 indexSet.forEach { index in
                     let taskToDelete = viewModel.filteredTasks[index]
                     Task {

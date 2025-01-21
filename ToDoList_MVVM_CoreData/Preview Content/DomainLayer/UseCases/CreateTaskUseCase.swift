@@ -23,9 +23,7 @@ final class CreateTaskUseCase {
             isCompleted: isCompleted
         )
         
-        //print("🔄 Сохранение задачи в CoreData: \(title)")
         try await taskRepository.saveTask(task)
-        //print("✅ Задача сохранена в CoreData: \(title)")
         return task
     }
 }

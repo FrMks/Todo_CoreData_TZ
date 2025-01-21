@@ -15,9 +15,7 @@ final class FetchLocalTasksUseCase {
     }
     
     func execute() async throws -> [TaskDomainEntity] {
-        print("🔄 Загрузка задач из CoreData...")
         let localTasks = try await taskRepository.fetchTasks()
-        print("✅ Загружено задач из CoreData: \(localTasks.count)")
         return localTasks
     }
 }

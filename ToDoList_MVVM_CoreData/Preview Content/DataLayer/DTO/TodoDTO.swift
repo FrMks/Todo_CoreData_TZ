@@ -15,19 +15,18 @@ struct TodoDTO: Codable, Identifiable {
     let userId: Int
     
     
-    // Вычисляемое свойство для преобразования Int в UUID
+    // Computable property to convert Int to UUID
     var uuid: UUID {
-        // Преобразуем Int в UUID
         var uuidBytes = [UInt8](repeating: 0, count: 16)
         
-        // Копируем байты из Int в uuidBytes
+        // Copy bytes from Int to uuidBytes
         withUnsafeBytes(of: id) { idBytes in
             for i in 0..<min(MemoryLayout<Int>.size, uuidBytes.count) {
                 uuidBytes[i] = idBytes[i]
             }
         }
         
-        // Создаем UUID из массива байтов
+        // Create UUID from byte array
         return UUID(uuid: (
             uuidBytes[0], uuidBytes[1], uuidBytes[2], uuidBytes[3],
             uuidBytes[4], uuidBytes[5], uuidBytes[6], uuidBytes[7],

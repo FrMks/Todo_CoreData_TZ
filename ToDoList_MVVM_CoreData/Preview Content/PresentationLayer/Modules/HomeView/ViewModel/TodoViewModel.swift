@@ -21,14 +21,18 @@ class TodoViewModel: ObservableObject {
     private let deleteTaskUseCase: DeleteTaskUseCase
     private let toggleTaskCompletionUseCase: ToggleTaskCompletionUseCase
     private let deleteAllTasksUseCase: DeleteAllTasksUseCase
+    private let filterTasksUseCase: FilterTasksUseCase
+    private let updateTaskListUseCase: UpdateTaskListUseCase
     
     init(
-        fetchLocalTasksUseCase: FetchLocalTasksUseCase = FetchLocalTasksUseCase(taskRepository: TaskRepository()),
-        fetchRemoteTasksUseCase: FetchRemoteTasksUseCase = FetchRemoteTasksUseCase(taskRepository: TaskRepository()),
-        createTaskUseCase: CreateTaskUseCase = CreateTaskUseCase(taskRepository: TaskRepository()),
-        deleteTaskUseCase: DeleteTaskUseCase = DeleteTaskUseCase(taskRepository: TaskRepository()),
-        toggleTaskCompletionUseCase: ToggleTaskCompletionUseCase = ToggleTaskCompletionUseCase(taskRepository: TaskRepository()),
-        deleteAllTasksUseCase: DeleteAllTasksUseCase = DeleteAllTasksUseCase(taskRepository: TaskRepository())
+        fetchLocalTasksUseCase: FetchLocalTasksUseCase,
+        fetchRemoteTasksUseCase: FetchRemoteTasksUseCase,
+        createTaskUseCase: CreateTaskUseCase,
+        deleteTaskUseCase: DeleteTaskUseCase,
+        toggleTaskCompletionUseCase: ToggleTaskCompletionUseCase,
+        deleteAllTasksUseCase: DeleteAllTasksUseCase,
+        filterTasksUseCase: FilterTasksUseCase,
+        updateTaskListUseCase: UpdateTaskListUseCase
     ) {
         self.fetchLocalTasksUseCase = fetchLocalTasksUseCase
         self.fetchRemoteTasksUseCase = fetchRemoteTasksUseCase
@@ -36,33 +40,40 @@ class TodoViewModel: ObservableObject {
         self.deleteTaskUseCase = deleteTaskUseCase
         self.toggleTaskCompletionUseCase = toggleTaskCompletionUseCase
         self.deleteAllTasksUseCase = deleteAllTasksUseCase
+        self.filterTasksUseCase = filterTasksUseCase
+        self.updateTaskListUseCase = updateTaskListUseCase
     }
     
-    // Отфильтрованные задачи на основе searchText
+    convenience init() {
+        let taskRepository = TaskRepository()
+        self.init(
+            fetchLocalTasksUseCase: FetchLocalTasksUseCase(taskRepository: taskRepository),
+            fetchRemoteTasksUseCase: FetchRemoteTasksUseCase(taskRepository: taskRepository),
+            createTaskUseCase: CreateTaskUseCase(taskRepository: taskRepository),
+            deleteTaskUseCase: DeleteTaskUseCase(taskRepository: taskRepository),
+            toggleTaskCompletionUseCase: ToggleTaskCompletionUseCase(taskRepository: taskRepository),
+            deleteAllTasksUseCase: DeleteAllTasksUseCase(taskRepository: taskRepository),
+            filterTasksUseCase: FilterTasksUseCase(),
+            updateTaskListUseCase: UpdateTaskListUseCase()
+        )
+    }
+    
     var filteredTasks: [TaskDomainEntity] {
-        if searchText.isEmpty {
-            return tasks
-        }
-        return tasks.filter { task in
-            task.title.localizedCaseInsensitiveContains(searchText)
-        }
+        filterTasksUseCase.execute(tasks: tasks, searchText: searchText)
     }
     
     @MainActor
     func loadData() async {
         isLoading = true
         do {
-            // 1. Загружаем задачи из локального хранилища (CoreData)
+            // 1. Load tasks from local storage (CoreData)
             let localTasks = try await fetchLocalTasksUseCase.execute()
-            print("🔄 Загружено задач из CoreData: \(localTasks.count)")
             
             if localTasks.isEmpty {
-                print("ℹ️ Локальных задач нет, загружаем с сервера...")
-                // 2. Если локальных задач нет, загружаем с сервера
+                // 2. If there are no local tasks, load from the server
                 let remoteTasks = try await fetchRemoteTasksUseCase.execute()
-                print("🔄 Загружено задач с сервера: \(remoteTasks.count)")
                 
-                // 3. Сохраняем задачи в локальное хранилище (CoreData)
+                // 3. Save tasks to local storage (CoreData)
                 for task in remoteTasks {
                     try await createTaskUseCase.execute(
                         id: task.id,
@@ -72,13 +83,11 @@ class TodoViewModel: ObservableObject {
                         isCompleted: task.isCompleted
                     )
                 }
-                print("✅ Задачи сохранены в CoreData")
                 
-                // 4. Обновляем список задач
+                // 4. Updating the task list
                 tasks = try await fetchLocalTasksUseCase.execute()
             } else {
-                print("ℹ️ Используем задачи из CoreData")
-                // 5. Если локальные задачи есть, используем их
+                // 5. If there are local tasks, we use them
                 tasks = localTasks
             }
         } catch {
@@ -87,16 +96,6 @@ class TodoViewModel: ObservableObject {
         }
         isLoading = false
     }
-    
-//    @MainActor
-//    func addTask(title: String, description: String) async {
-//        do {
-//            let task = try await createTaskUseCase.execute(id: <#UUID#>, title: title, description: description, date: Date(), isCompleted: false)
-//            tasks.append(task)
-//        } catch {
-//            print("❌ Error creating task: \(error.localizedDescription)")
-//        }
-//    }
     
     @MainActor
     func deleteTask(byId id: UUID) async {
@@ -111,9 +110,6 @@ class TodoViewModel: ObservableObject {
     @MainActor
     func toggleTaskCompletion(task: TaskDomainEntity) async {
         do {
-            // Создаем обновленную задачу с измененным состоянием isCompleted
-            print("Создаем обновленную задачу с измененным состоянием isCompleted")
-            print("ID задачи: \(task.id)")
             let updatedTask = TaskDomainEntity(
                 id: task.id,
                 title: task.title,
@@ -122,16 +118,11 @@ class TodoViewModel: ObservableObject {
                 isCompleted: !task.isCompleted // Инвертируем состояние
             )
             
-            // Обновляем задачу в CoreData
-            print("Обновляем задачу в CoreData \(updatedTask.id)")
+            // Updating a task in CoreData
             try await toggleTaskCompletionUseCase.execute(task: updatedTask)
-            print("Обновили задачу в CoreData")
             
-            // Обновляем задачу в локальном списке
-            if let index = tasks.firstIndex(where: { $0.id == updatedTask.id }) {
-                tasks[index] = updatedTask
-            }
-            print("Обновили задачу в локальном списке")
+            // Updating a task in the local list
+            tasks = updateTaskListUseCase.execute(tasks: tasks, updatedTask: updatedTask)
         } catch {
             print("❌ Error toggling task completion: \(error.localizedDescription)")
         }
@@ -142,11 +133,9 @@ class TodoViewModel: ObservableObject {
         do {
             tasks = []
             try await deleteAllTasksUseCase.execute()
-            
-            print("✅ Все данные успешно удалены")
         } catch {
             self.error = error
-            print("❌ Ошибка при удалении всех данных: \(error.localizedDescription)")
+            print("❌ Error when deleting all data: \(error.localizedDescription)")
         }
     }
 }

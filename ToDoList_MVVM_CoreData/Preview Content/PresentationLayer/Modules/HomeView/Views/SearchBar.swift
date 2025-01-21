@@ -27,7 +27,7 @@ struct SearchBar: View {
             }
         }
         .padding(8)
-        .background(Color.theme.grayCustom) // Полупрозрачный серый фон
+        .background(Color.theme.grayCustom)
         .cornerRadius(10)
         .padding(.horizontal)
     }
